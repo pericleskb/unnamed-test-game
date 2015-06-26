@@ -1,0 +1,3 @@
+stdafx.h για να μην χρειαζεται να κανουμε compile καθε φορα τα ιδια headers
+smart pointer
+memory management

@@ -1,0 +1,21 @@
+<TextureAtlas imagePath="res/orc.png">
+	<Animation name = "orc_attack_up" width = "64" height = "64" amount = "8
+" positionY = "4" />
+	<Animation name = "orc_attack_left" width = "64" height = "64" amount = "8
+" positionY = "5" />
+	<Animation name = "orc_attack_down" width = "64" height = "64" amount = "8
+" positionY = "6" />
+	<Animation name = "orc_attack_right" width = "64" height = "64" amount = "8
+" positionY = "7" />
+	<Animation name = "orc_up" width = "64" height = "64" amount = "9
+" positionY = "8" />
+	<Animation name = "orc_left" width = "64" height = "64" amount = "9
+" positionY = "9" />
+	<Animation name = "orc_down" width = "64" height = "64" amount = "9
+" positionY = "10" />
+	<Animation name = "orc_right" width = "64" height = "64" amount = "9
+" positionY = "11" />
+	<Animation name = "orc_dying" width = "64" height = "64" amount = "6
+" positionY = "20" />
+
+</TextureAtlas>
