@@ -1,6 +1,5 @@
 # unnamed-test-game
 This is a game I am making in C++, using the SFML library.
-
 I started making this game for educative and entertainment purposes.
 
 
