@@ -1,11 +1,10 @@
 # unnamed-test-game
-<<<<<<< HEAD
 This is a game I am making in C++, using the SFML library.
 I started making this game for educative and entertainment purposes.
 
 
 All the art I am using is offered by its creators for free usage by anyone.
-=======
+
 This is a still under development game I am making in C++, using the SFML library. I started making this game for educative and entertainment purposes.
 
 I am aiming to make it a commandos-like game with some riddles regarding how you will use the few mana points that you have. Some things I want to implement are:
@@ -19,14 +18,11 @@ I am aiming to make it a commandos-like game with some riddles regarding how you
 -And everything else a game needs like adding sounds, menu, a story etc
 
 The levels are created using "Tiled" and are loaded in the game by reading an xml file that Tiled generates. The maps are loaded automatically by reading the file and there is no need to change any code when creating a new map.
->>>>>>> 363d7945173c61d683e8248f1a0be69c19dd9ffc
+
 
 I am using the pugixml parser, for reading the map data and the data to extract sprites from spritesheets.
 
 Also the AnimatedSprite and Animation files were taken from the SFML wiki at Github and weren't created by me.
 
-<<<<<<< HEAD
 
-=======
 All the art I am using is offered by its creators for free usage by anyone.
->>>>>>> 363d7945173c61d683e8248f1a0be69c19dd9ffc
