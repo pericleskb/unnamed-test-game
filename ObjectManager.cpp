@@ -1,8 +1,12 @@
 #include "ObjectManager.hpp"
 #include "Game.hpp"
-#include <iostream>
 #include "Collision.hpp"
+#include <iostream>
 #include <string.h>
+
+//the player class shouldn't be handled by the same functions that handles
+//other visible objects. Too late to change now but the VisibleObject class
+//is full of variables that have no use for the player and vice versa
 
 static int bounceValue = 0;
 
@@ -68,7 +72,6 @@ void ObjectManager::DrawAll(sf::RenderWindow& renderWindow)
 {
   std::list<VisibleObject*> tempList;
   sortObjectsByHeight(tempList);
- // std::cout<<"size:"<<tempList.size()<<std::endl;
 
   int objectsAmount = tempList.size();
 
@@ -78,7 +81,7 @@ void ObjectManager::DrawAll(sf::RenderWindow& renderWindow)
     tempList.pop_front();
   }
 
-  for(std::vector<VisibleObject*>::iterator projectileItr =
+  for(std::list<VisibleObject*>::iterator projectileItr =
         _projectiles.begin();projectileItr!=_projectiles.end();++projectileItr)
   {
     (*projectileItr)->Draw(renderWindow);
@@ -90,17 +93,15 @@ void ObjectManager::UpdateAll()
   sf::Time elapsed = _clock.restart();
 	std::map<std::string,VisibleObject*>::const_iterator itr =
                                                 _gameObjects.begin();
-	//float timeDelta = Game::getWindow().getGetFrameTime();
 	while(itr != _gameObjects.end())
 	{
     itr->second->Update(elapsed);
     itr++;
 	}
-
-    std::cout<<_projectiles.size()<<std::endl;
-  for(std::vector<VisibleObject*>::iterator projectileItr =
+  for(std::list<VisibleObject*>::iterator projectileItr =
         _projectiles.begin();projectileItr!=_projectiles.end();++projectileItr)
   {
+
     (*projectileItr)->Update(elapsed);
   }
 
@@ -125,12 +126,11 @@ std::map<std::string, VisibleObject*>::const_iterator results =
   return NULL;
 }
 
-//rect2 must be the moving object
 bool collisionBetween(sf::Rect<float> staticObject,sf::Rect<float> movingObject)
 {
    return   (staticObject.left < movingObject.left + movingObject.width &&
       staticObject.left + staticObject.width > movingObject.left &&
-      staticObject.top < movingObject.top + movingObject.height &&
+      staticObject.top <= movingObject.top + movingObject.height +2 &&
       staticObject.top + staticObject.height >
       movingObject.top + (movingObject.height * 0.75));
 }
@@ -147,19 +147,17 @@ bool collisionBetweenVisibleObjs(sf::Rect<float> staticObject,sf::Rect<float> mo
 void bounce(VisibleObject& object, sf::Rect<float> objectsRect,
             sf::Rect<float> otherRect)
 {
-  object.setCollision(true);
-
-
-if(object.GetSpeed().y != 0)
+  if(object.GetSpeed().y != 0)
     object.setPositionYToPrevious(bounceValue);
 
-
+  if(object.GetSpeed().x != 0)
+    object.setPositionXToPrevious(bounceValue);
   //if horizontal collision
-  if(objectsRect.left < otherRect.left){
+ /* if(objectsRect.left <= otherRect.left){
     if(object.GetSpeed().x > 0)
       object.setPositionXToPrevious(bounceValue);
   }
-  if(objectsRect.left+objectsRect.width > otherRect.left + otherRect.width){
+  if(objectsRect.left+objectsRect.width >= otherRect.left + otherRect.width){
     if(object.GetSpeed().x < 0)
       object.setPositionXToPrevious(bounceValue);
   }
@@ -168,11 +166,11 @@ if(object.GetSpeed().y != 0)
     if(object.GetSpeed().y > 0)
       object.setPositionXToPrevious(bounceValue);
   }
-  if(objectsRect.top + objectsRect.height > otherRect.top + otherRect.height){
+  if(objectsRect.top + objectsRect.height >= otherRect.top + otherRect.height){
     if(object.GetSpeed().y < 0)
       object.setPositionXToPrevious(bounceValue);
   }
-
+*/
 }
 
 void ObjectManager::checkBordersCollisions()
@@ -181,53 +179,50 @@ void ObjectManager::checkBordersCollisions()
   _gameObjects.begin();
 	while(ObjectItr != _gameObjects.end())
 	{
-    for(std::vector<sf::RectangleShape>::iterator bordersItr = borders.begin();
+    for(std::vector<sf::RectangleShape>::iterator bordersItr =borders.begin();
       bordersItr!=borders.end();++bordersItr)
     {
-      sf::Rect<float> bord((*bordersItr).getPosition(),(*bordersItr).getSize());
-      sf::Rect<float> obj((*ObjectItr).second->GetBoundingRect());
+      sf::Rect<float> bord((*bordersItr).getPosition(),(*bordersItr).
+                                                                  getSize());
+      sf::Rect<float> obj((*ObjectItr).second->GetBorderBoundingRect());
 
       if( collisionBetween(bord,obj) )
       {
-
-        bounce(*(*ObjectItr).second,obj,bord);
+        (*ObjectItr).second->setCollision(true);
+        if(strcmp((*ObjectItr).first.c_str(),"player") == 0 ||
+          (*ObjectItr).second->getEnemyState() ==
+                          VisibleObject::EnemyState::Pushed)
+        {
+          bounce(*(*ObjectItr).second,obj,bord);
+        }
       }
-
-
-      /*
-      //if collision
-
-
-        std::cout <<"COLL"<<std::endl;
-        obj.left = previousPos.x;
-        //if no intersection set it back
-        if( !collisionBetween(bord,obj) )
-        {
-          std::cout <<"1"<<std::endl;
-          (*ObjectItr).second->setPositionXToPrevious(bounceValue);
-        }
-        else
-        {
-          obj = ((*ObjectItr).second->GetBoundingRect());
-
-          obj.top = previousPos.y;
-          if(!collisionBetween(bord,obj) )
-          {
-          std::cout <<"2"<<std::endl;
-
-            (*ObjectItr).second->setPositionYToPrevious(bounceValue);
-          }
-        }
-
-      */
-
     }
     ObjectItr++;
-	}
+  }
 }
 
 void ObjectManager::checkObjectsCollisions()
 {
+  VisibleObject* player = _gameObjects.find("player")->second;
+  std::map<std::string,VisibleObject*>::const_iterator ObjectItr =
+    _gameObjects.begin();
+	while(ObjectItr != _gameObjects.end())
+  {
+    if(strcmp((*ObjectItr).first.c_str(),"player") != 0)
+    {
+        sf::Rect<float> obj((*ObjectItr).second->GetBoundingRect());
+        sf::Rect<float> obj2(player->GetBoundingRect());
+        if( collisionBetweenVisibleObjs(obj2,obj) )
+        {
+           bounce(*(*ObjectItr).second,obj,obj2);
+           bounce(*player,obj2,obj);
+        }
+    }
+    ObjectItr++;
+  }
+
+  /*
+  With this, enemies collide with each other
   std::map<std::string,VisibleObject*>::const_iterator ObjectItr =
   _gameObjects.begin();
 	while(ObjectItr != _gameObjects.end())
@@ -247,22 +242,127 @@ void ObjectManager::checkObjectsCollisions()
     }
     ObjectItr++;
   }
+  */
+}
+
+
+void ObjectManager::CheckProjectileCollision()
+{
+  for(std::list<VisibleObject*>::iterator projectileItr =
+        _projectiles.begin();projectileItr!=_projectiles.end();++projectileItr)
+  {
+    sf::Rect<float> proj((*projectileItr)->GetBoundingRect());
+    //for objects
+    std::map<std::string,VisibleObject*>::const_iterator ObjectItr =
+          _gameObjects.begin();
+    while(ObjectItr != _gameObjects.end())
+    {
+      if(strcmp((*ObjectItr).first.c_str(),"player") != 0)
+      {
+        sf::Rect<float> obj((*ObjectItr).second->GetBoundingRect());
+        if( collisionBetween(obj,proj) )
+        {
+          (*ObjectItr).second->setDamage((*projectileItr)->getPower());
+          delete *projectileItr;
+          _projectiles.erase(projectileItr);
+          projectileItr--;
+          break;
+        }
+      }
+      ObjectItr++;
+    }
+
+    //for borders
+    for(std::vector<sf::RectangleShape>::iterator bordersItr = borders.begin();
+      bordersItr!=borders.end();++bordersItr)
+    {
+      sf::Rect<float> bord((*bordersItr).getPosition(),(*bordersItr).getSize());
+
+      if( collisionBetween(bord,proj) )
+      {
+        delete *projectileItr;
+        _projectiles.erase(projectileItr);
+        projectileItr--;
+      }
+    }
+  }
+}
+
+void ObjectManager::CheckObjectsToRemove()
+{
+  //Enemies
+  std::map<std::string,VisibleObject*>::const_iterator ObjectItr =
+    _gameObjects.begin();
+	while(ObjectItr != _gameObjects.end())
+  {
+	  if(strcmp((*ObjectItr).first.c_str(),"player") != 0)
+    {
+      if((*ObjectItr).second->isDead())
+      {
+        _deadObjects.insert(std::pair<std::string,VisibleObject*>
+                                ((*ObjectItr).first,(*ObjectItr).second));
+        _gameObjects.erase(ObjectItr);
+        ObjectItr--;
+      }
+    }
+    ObjectItr++;
+  }
+  sf::FloatRect viewRect = Game::GetViewRectangle();
+
+  //Projectiles
+  std::list<VisibleObject*>::iterator projectileItr = _projectiles.begin() ;
+  while(projectileItr != _projectiles.end())
+  {
+    if((*projectileItr)->GetCenterPosition().x > viewRect.left + viewRect.width
+        ||(*projectileItr)->GetCenterPosition().y > viewRect.top + viewRect.height)
+    {
+      delete *projectileItr;
+      _projectiles.erase(projectileItr);
+      projectileItr--;
+    }
+    projectileItr++;
+  }
 }
 
 bool ObjectManager::LevelFinished()
 {
- // if(_gameObjects.find("player") != _gameObjects.end()){
     if(collisionBetween(nextLevelRect,
                   _gameObjects.find("player")->second->GetBoundingRect()))
     {
       return true;
     }
     return false;
- // }
+}
+
+void ObjectManager::clearLevel()
+{
+  if(!_gameObjects.empty())
+  {
+    VisibleObject* tempPlayer = _gameObjects.find("player")->second;
+    _gameObjects.clear();
+    this->Add("player", tempPlayer);
+    _gameObjects.find("player")->second->resetObject();
+  }
+  if(!_projectiles.empty())
+    _projectiles.clear();
+  if(!_deadObjects.empty())
+    _deadObjects.clear();
 }
 
 void ObjectManager::ResetMap()
 {
+
+  //restore dead Enemies
+  std::map<std::string,VisibleObject*>::const_iterator deadItr =
+                    _deadObjects.begin();
+	while(deadItr != _deadObjects.end())
+  {
+    this->Add((*deadItr).first,(*deadItr).second);
+    deadItr++;
+  }
+  _deadObjects.clear();
+
+  //setSlowFactors and Pushes. HPs and Mana
   std::map<std::string,VisibleObject*>::const_iterator itr =
                                               _gameObjects.begin();
 	while(itr != _gameObjects.end())
@@ -271,14 +371,20 @@ void ObjectManager::ResetMap()
 	  (*itr).second->resetObject();
 	  itr++;
 	}
+
+	for(std::list<VisibleObject*>::iterator projectileItr =
+          _projectiles.begin();projectileItr!=_projectiles.end();++projectileItr)
+  {
+    delete *projectileItr;
+    _projectiles.erase(projectileItr);
+    projectileItr--;
+  }
 }
 
 float GetDistance(sf::Vector2f a, sf::Vector2f b)
 {
   sf::Vector2f distanceVector(abs(a.x - b.x), abs(a.y - b.y));
-  std::cout<<"x = "<<distanceVector.x << "  y= "<<distanceVector.y <<std::endl;
   float distance = sqrt(pow(distanceVector.x,2) + pow(distanceVector.y,2));
-  std::cout<<"dis = "<<distance <<std::endl;
   return distance;
 }
 
@@ -301,64 +407,23 @@ void ObjectManager::GetObjectsInRadius(std::vector<VisibleObject*>&
   }
 }
 
-
 void ObjectManager::AddProjectile(VisibleObject* projectile)
 {
   _projectiles.push_back(projectile);
 }
 
-void ObjectManager::CheckProjectileCollision()
+bool ObjectManager::IsObjectBehindUI(sf::Rect<float> UI_Rect)
 {
-std::map<std::string,VisibleObject*>::const_iterator ObjectItr =
-  _gameObjects.begin();
-	while(ObjectItr != _gameObjects.end())
-  {
-    if(strcmp((*ObjectItr).first.c_str(),"player") != 0)
-    {
-      for(std::vector<VisibleObject*>::iterator projectileItr =
-          _projectiles.begin();projectileItr!=_projectiles.end();++projectileItr)
-      {
-        sf::Rect<float> obj((*ObjectItr).second->GetBoundingRect());
-        sf::Rect<float> proj((*projectileItr)->GetBoundingRect());
-        if( collisionBetween(obj,proj) )
-        {
-          (*ObjectItr).second->setDamage((*projectileItr)->getPower());
-          _projectiles.erase(projectileItr);
-          projectileItr--;
-        }
-      }
-    }
-   ObjectItr++;
-  }
-}
-
-void ObjectManager::CheckObjectsToRemove()
-{
-  //Enemies
   std::map<std::string,VisibleObject*>::const_iterator ObjectItr =
     _gameObjects.begin();
 	while(ObjectItr != _gameObjects.end())
   {
-	  if(strcmp((*ObjectItr).first.c_str(),"player") != 0)
+    sf::Rect<float> obj((*ObjectItr).second->GetBoundingRect());
+    if( collisionBetween(UI_Rect,obj) )
     {
-      if((*ObjectItr).second->isDead())
-      {
-        _gameObjects.erase(ObjectItr);
-        ObjectItr--;
-      }
+       return true;
     }
     ObjectItr++;
   }
-  sf::FloatRect viewRect = Game::GetViewRectangle();
-  //Projectiles
-  for(std::vector<VisibleObject*>::iterator projectileItr =
-          _projectiles.begin();projectileItr!=_projectiles.end();++projectileItr)
-  {
-    if((*projectileItr)->GetCenterPosition().x > viewRect.left + viewRect.width
-        ||(*projectileItr)->GetCenterPosition().y > viewRect.top + viewRect.height)
-    {
-      _projectiles.erase(projectileItr);
-      projectileItr--;
-    }
-  }
+  return false;
 }

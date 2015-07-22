@@ -1,5 +1,5 @@
 #pragma once
-#include "VisibleObject.hpp"
+#include "Objects/VisibleObject.hpp"
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/Rect.hpp>
 #include <list>
@@ -19,7 +19,7 @@ public:
 	void UpdateAll();
 
   bool LevelFinished();
-
+  void clearLevel();
 
   void AddProjectile(VisibleObject*);
 
@@ -36,13 +36,15 @@ public:
 
   void GetObjectsInRadius(std::vector<VisibleObject*>& , sf::CircleShape);
 
+  bool IsObjectBehindUI(sf::Rect<float>);
 
 private:
 
 
   sf::Clock _clock;
 	std::map<std::string, VisibleObject*> _gameObjects;
-	std::vector<VisibleObject*> _projectiles;
+	std::list<VisibleObject*> _projectiles;
+  std::map<std::string, VisibleObject*> _deadObjects;
   void sortObjectsByHeight(std::list<VisibleObject*>&);
 //called from the destructor to delete all elements
 	struct ObjectDeallocator

@@ -2,7 +2,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
-#include "Animation.hpp"
+#include "Animation/AnimatedSprite.hpp"
 
 //This should be available to all without the need to include
 //maybe in game???

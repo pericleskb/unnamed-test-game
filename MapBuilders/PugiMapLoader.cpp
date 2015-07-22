@@ -1,9 +1,9 @@
 #include "PugiMapLoader.hpp"
-#include "pugixml/pugixml.hpp"
+#include "../pugixml/pugixml.hpp"
 #include <iostream>
 #include <string.h>
-#include "Objects/Player.hpp"
-#include "Objects/EnemyOrc.hpp"
+#include "../Objects/Player.hpp"
+#include "../Objects/EnemyOrc.hpp"
 
 using namespace std;
 

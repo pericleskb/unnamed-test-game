@@ -5,8 +5,7 @@
 #include "SFML/Graphics.hpp"
 
 //sprite_sheets.txt contains all the xml files with meta-data
-//for loading the sprites. We load all of them in the beggining
-//of the game
+//for loading the sprites. We load all of them when the game starts
 void ImageManager::init()
 {
   std::cout << "Init" << std::endl;
@@ -25,7 +24,6 @@ void ImageManager::init()
     }
     myfile.close();
   }
-
 }
 
 int ImageManager::loadSpriteSheetData(std::string spriteSheetName)
@@ -41,17 +39,18 @@ int ImageManager::loadSpriteSheetData(std::string spriteSheetName)
   pugi::xml_node animation = atlas.first_child();
   while( animation )
   {
+    std::string animationName;
+    animationName = animation.attribute("name").value();
+    std::cout << "Animation Name: " << animationName << std::endl;
+    std::vector<SpriteData> spritesVec;
+    int width = atoi(animation.attribute("width").value());
+    int height = atoi(animation.attribute("height").value());
+
     if(strcmp(animation.name(),"Animation")==0)
     {
-      //get node attribute "name"
-      std::string animationName;
-      animationName = animation.attribute("name").value();
-      std::cout << "Animation Name: " << animationName << std::endl;
-      std::vector<SpriteData> spritesVec;
-      int width = atoi(animation.attribute("width").value());
-      int height = atoi(animation.attribute("height").value());
       int positionY = atoi(animation.attribute("positionY").value());
       int numOfSprites = atoi(animation.attribute("amount").value());
+      //get node attribute "name"
       for(int i=0; i < numOfSprites; i++)
       {
         SpriteData sprite;
@@ -63,32 +62,33 @@ int ImageManager::loadSpriteSheetData(std::string spriteSheetName)
         sprite.x = i * width;
         spritesVec.push_back(sprite);
       }
-
-//for every sprite
-     /*
-      pugi::xml_node spriteNode = animation.first_child();
-      while(spriteNode)
-      {
-        SpriteData sprite;
-        sprite.spriteSheetPath = texturePath;
-        sprite.height = atoi(spriteNode.attribute("h").value());
-        sprite.width = atoi(spriteNode.attribute("w").value());
-        sprite.x = atoi(spriteNode.attribute("x").value());
-        sprite.y = atoi(spriteNode.attribute("y").value());
-        spritesVec.push_back(sprite);
-        spriteNode = spriteNode.next_sibling();
-      }
-      */
-
-      _gameImages.insert(std::pair< std::string, std::vector<SpriteData> >
-                         (animationName,spritesVec));
     }
+    if(strcmp(animation.name(),"One_Animation")==0)
+    {
+      int rows = atoi(animation.attribute("rows").value());
+      int amountPerRow = atoi(animation.attribute("amountPerRow").value());
+      for(int i=0; i < rows; i++)
+      {
+        for(int j = 0; j < amountPerRow; j++)
+        {
+          SpriteData sprite;
+          sprite.spriteSheetPath = texturePath;
+          //every sprite of an animation is at the same line
+          sprite.x = j * width;
+          sprite.y = i * height;
+          sprite.width = width;
+          sprite.height = height;
+          spritesVec.push_back(sprite);
+
+        }
+      }
+    }
+
+
+    _gameImages.insert(std::pair< std::string, std::vector<SpriteData> >
+                       (animationName,spritesVec));
+
     animation = animation.next_sibling();
-  }
-  for (imageLoadMap_t::iterator it=_gameImages.begin(); it!=_gameImages.end();
-                      ++it)
-  {
-    std::cout << it->first << " => "  <<std::endl;
   }
 
   return 1;
