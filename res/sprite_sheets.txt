@@ -1,3 +1,0 @@
-res/hero.xml
-res/orc.xml
-res/fireball.xml
