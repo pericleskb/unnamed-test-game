@@ -1,5 +1,5 @@
 # unnamed-test-game
-This is a still under development game I am making in C++, using the SFML library. I started making this game for educative and entertainment purposes.
+This is a still under development game I am creating in C++, using the SFML library. I started making this game for educative and entertainment purposes.
 
 I am aiming to make it a commandos-like game with some riddles regarding how you will use the few mana points that you have. Some things I want to implement are:
 
